@@ -1,0 +1,38 @@
+name: Lateping ping
+description: Tell Lateping a scheduled workflow started, succeeded or failed, so you hear about runs that never happen.
+author: Lateping
+branding:
+  icon: bell
+  color: green
+
+inputs:
+  url:
+    description: The check's ping URL, for example from secrets.LATEPING_URL.
+    required: true
+  status:
+    description: >
+      What to report: start, success, failure or cancelled. In a final step with if always(), pass
+      the job's status (the job.status expression): success pings the URL, failure or cancelled
+      pings /fail. Use start at the top of the job to time runs.
+    required: false
+    default: success
+  fail-on-error:
+    description: Fail this step if the ping can't be sent. Off by default, so monitoring never breaks your job.
+    required: false
+    default: 'false'
+
+outputs:
+  signal:
+    description: The ping that was sent (start, success or fail).
+    value: ${{ steps.ping.outputs.signal }}
+
+runs:
+  using: composite
+  steps:
+    - id: ping
+      shell: bash
+      env:
+        LATEPING_URL: ${{ inputs.url }}
+        LATEPING_STATUS: ${{ inputs.status }}
+        LATEPING_STRICT: ${{ inputs.fail-on-error }}
+      run: bash "$GITHUB_ACTION_PATH/ping.sh"

@@ -1,0 +1,41 @@
+# Tests the action against Lateping staging. LATEPING_TEST_URL is a staging check with a long
+# period, so these pings never alert; failure handling is tested against a check that doesn't exist.
+name: test
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  script:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck ping.sh test/run.sh
+      - run: test/run.sh
+        env: { LATEPING_TEST_URL: '${{ secrets.LATEPING_TEST_URL }}' }
+
+  as-a-user:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with: { url: '${{ secrets.LATEPING_TEST_URL }}', status: start }
+      - run: echo "the job's real work"
+      - id: end
+        uses: ./
+        if: always()
+        with: { url: '${{ secrets.LATEPING_TEST_URL }}', status: '${{ job.status }}' }
+      - run: test "${{ steps.end.outputs.signal }}" = success
+
+  strict-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: ping
+        continue-on-error: true
+        uses: ./
+        with:
+          url: https://app-staging.lateping.com/p/00000000-0000-0000-0000-000000000000
+          status: failure
+          fail-on-error: 'true'
+      - run: test "${{ steps.ping.outcome }}" = failure
