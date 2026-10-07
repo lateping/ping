@@ -28,6 +28,10 @@ run 0 success "$LATEPING_TEST_URL" Success
 run 0 fail "$missing" failure          # 404 warns, doesn't break the job
 run 0 fail "$missing" cancelled
 run 1 fail "$missing" failure true     # strict: a failed ping fails the step
+run 0 success "$LATEPING_TEST_URL" 0     # exit code 0 is a success
+run 0 fail "$missing" 137              # any other exit code is a failure
+run 1 - "$LATEPING_TEST_URL" 256       # out of range
+run 1 - "$LATEPING_TEST_URL" 007       # leading zeros aren't exit codes
 run 1 - "$LATEPING_TEST_URL" sideways  # unknown status
 run 1 - "https://example.com/hook" success   # not a ping URL
 run 1 - "" success                     # missing URL
