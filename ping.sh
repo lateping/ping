@@ -16,8 +16,11 @@ case "$(echo "${LATEPING_STATUS:-success}" | tr '[:upper:]' '[:lower:]')" in
   start) signal=start path=/start ;;
   success | '') signal=success path= ;;
   failure | cancelled | fail) signal=fail path=/fail ;;
+  # An exit code (0 to 255, as Lateping accepts it): 0 is a success, anything else a failure.
+  0) signal=success path=/0 ;;
+  [1-9] | [1-9][0-9] | 1[0-9][0-9] | 2[0-4][0-9] | 25[0-5]) signal=fail path="/$LATEPING_STATUS" ;;
   *)
-    echo "::error::Unknown status '${LATEPING_STATUS}'. Use start, success, failure, cancelled or \${{ job.status }}."
+    echo "::error::Unknown status '${LATEPING_STATUS}'. Use start, success, failure, cancelled, an exit code (0 to 255) or \${{ job.status }}."
     exit 1
     ;;
 esac

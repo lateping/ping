@@ -13,7 +13,8 @@ inputs:
     description: >
       What to report: start, success, failure or cancelled. In a final step with if always(), pass
       the job's status (the job.status expression): success pings the URL, failure or cancelled
-      pings /fail. Use start at the top of the job to time runs.
+      pings /fail. Use start at the top of the job to time runs. An exit code (0 to 255) is also
+      accepted: 0 is a success, anything else a failure that shows the code in the alert.
     required: false
     default: success
   fail-on-error:

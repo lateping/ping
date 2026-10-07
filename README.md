@@ -54,19 +54,33 @@ Pro and above).
           status: start
 ```
 
+### Report a command's exit code
+
+To report one command rather than the whole job, pass its exit code. `0` is a success; anything
+else is a failure, and the alert shows the code.
+
+```yaml
+      - id: backup
+        run: ./scripts/backup.sh; echo "code=$?" >> "$GITHUB_OUTPUT"
+      - uses: lateping/ping@v1
+        with:
+          url: ${{ secrets.LATEPING_URL }}
+          status: ${{ steps.backup.outputs.code }}
+```
+
 ## Inputs
 
 | Input | Default | |
 |---|---|---|
 | `url` | required | The check's ping URL. Keep it in a secret. |
-| `status` | `success` | `start`, `success`, or `${{ job.status }}` (`success`, `failure`, `cancelled`). |
+| `status` | `success` | `start`, `success`, `${{ job.status }}` (`success`, `failure`, `cancelled`), or an exit code `0` to `255`. |
 | `fail-on-error` | `false` | Fail this step if the ping can't be sent. Off by default, so monitoring never breaks your job. |
 
 The step outputs `signal`: `start`, `success` or `fail`.
 
 ## How it works
 
-One `curl` call: `POST` to the ping URL, `/start` or `/fail`, with a 10 second timeout and three
+One `curl` call: `POST` to the ping URL, `/start`, `/fail` or `/<exit code>`, with a 10 second timeout and three
 retries. No dependencies, no data beyond the request itself, and the URL is never printed to the
 log. Guide: [GitHub Actions scheduled workflow not running](https://lateping.com/guides/github-actions).
 
